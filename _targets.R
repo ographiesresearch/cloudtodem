@@ -1,24 +1,11 @@
 targets::tar_source()
-targets::tar_option_set(packages = c("lidR", "terra"))
+targets::tar_option_set(packages = c("lidR", "terra", "RCSF"))
 
 input_path <- Sys.getenv("INPUT_PATH")
 
-output_path <- paste(
-  tools::file_path_sans_ext(input_path),
-  "tif",
-  sep = "."
-  )
-
 list(
-  targets::tar_target(
-    file,
-    input_path,
-    format = "file"
-  ),
-  targets::tar_target(
-    data,
-    lidR::readLAS(file)
-  ),
+  targets::tar_target(file, input_path, format = "file"),
+  targets::tar_target(data, lidR::readLAS(file)),
   targets::tar_target(
     classified,
     data |>
@@ -29,10 +16,9 @@ list(
   targets::tar_target(
     dem,
     classified |>
-      lidR::rasterize_terrain(
-        res = 1, 
-        algorithm = lidR::tin()
-        ) |>
-      terra::writeRaster(output_path)
+      lidR::rasterize_terrain(res = 1, algorithm = lidR::tin()) |>
+      terra::writeRaster(paste(
+        tools::file_path_sans_ext(input_path), "tif", sep = "."
+      ))
   )
 )
