@@ -1,10 +1,18 @@
 targets::tar_source()
-targets::tar_option_set(packges = c("lidR", "terra"))
+targets::tar_option_set(packages = c("lidR", "terra"))
+
+input_path <- Sys.getenv("INPUT_PATH")
+
+output_path <- paste(
+  tools::file_path_sans_ext(input_path),
+  "tif",
+  sep = "."
+  )
 
 list(
   targets::tar_target(
     file,
-    "NEONDSSampleLiDARPointCloud.las",
+    input_path,
     format = "file"
   ),
   targets::tar_target(
@@ -16,7 +24,7 @@ list(
     data |>
       lidR::classify_noise(lidR::ivf(res = 3, n = 10)) |>
       lidR::filter_poi(Classification != LASNOISE) |>
-      lidr::classify_ground(algorithm = lidR::csf())
+      lidR::classify_ground(algorithm = lidR::csf())
   ),
   targets::tar_target(
     dem,
@@ -25,6 +33,6 @@ list(
         res = 1, 
         algorithm = lidR::tin()
         ) |>
-      terra::writeRaster('dem.tif')
+      terra::writeRaster(output_path)
   )
 )
